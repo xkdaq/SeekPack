@@ -1,5 +1,5 @@
 
-[https://ssl.gstatic.com/android/market_images/web/play_prism_hlock_m.png](https://play.google.com/store/apps/details?id=com.rank.getapk)
+[!(https://ssl.gstatic.com/android/market_images/web/play_prism_hlock_m.png)](https://play.google.com/store/apps/details?id=com.rank.getapk)
 
 ### SeekPack
 小工具 查看本地app信息
