@@ -1,3 +1,5 @@
+<img src="https://ssl.gstatic.com/android/market_images/web/play_prism_hlock_m.png"/> Google Play
+
 
 ### SeekPack
 小工具 查看本地app信息
