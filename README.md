@@ -1,12 +1,3 @@
-
-
-[![baidu]](http://baidu.com)  
-[baidu]:http://www.baidu.com/img/bdlogo.gif "百度Logo"  
-
-
-[![seekpack]](https://play.google.com/store/apps/details?id=com.rank.getapk)  
-[seekpack]:https://ssl.gstatic.com/android/market_images/web/play_prism_hlock_m.png "SeekPack"  
-
 [![](https://ssl.gstatic.com/android/market_images/web/play_prism_hlock_m.png)](https://play.google.com/store/apps/details?id=com.rank.getapk)
 
 ### SeekPack
