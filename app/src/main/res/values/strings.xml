@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">SeekPack</string>
+    <string name="confirm">Confirm</string>
+    <string name="system">System</string>
+    <string name="third_party">Third party</string>
+    <string name="debug">DEBUG</string>
+    <string name="release">RELEASE</string>
+    <string name="sort">Sort</string>
+    <string name="rationale_storage">Refuse to read and write storage</string>
+    <string name="error_storage">Failed to get permission</string>
+    <string name="allow">Allow</string>
+    <string name="deny">Deny</string>
+    <string name="warning">Warning</string>
+    <string name="new_create">Create</string>
+    <string name="new_create_folder">New folder</string>
+    <string name="cancel">Cancel</string>
+    <string name="choose_save_path">Choose a save path</string>
+    <string name="copying">Copying</string>
+    <string name="signature">Signing %d:</string>
+    <string name="base_info">Basic information:</string>
+    <string name="signing_info">Signings:</string>
+    <string name="history_signing">Signing History:</string>
+    <string name="choose_apk">Select apk file</string>
+    <string name="parsing">Parsing</string>
+</resources>
