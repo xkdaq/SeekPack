@@ -2,17 +2,26 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 29
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.rank.getapk"
         minSdkVersion 17
-        targetSdkVersion 29
-        versionCode 3
-        versionName "1.0.3"
+        targetSdkVersion 33
+        versionCode 4
+        versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
     }
+
+    tasks.withType(JavaCompile).configureEach{
+        options.fork = true
+        options.forkOptions.jvmArgs +=[
+                '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+                '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+                '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED']
+    }
+
 
     signingConfigs {
         release {
@@ -57,18 +66,17 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
+    implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.google.android.material:material:1.1.0-alpha02'
-    androidTestImplementation 'androidx.test:runner:1.1.1'
+
     implementation 'androidx.palette:palette:1.0.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     // Because RxAndroid releases are few and far between, it is recommended you also
     // explicitly depend on RxJava's latest version for bug fixes and new features.
     implementation 'io.reactivex.rxjava2:rxjava:2.2.5'
-    implementation 'com.jakewharton:butterknife:10.0.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.0.0'
+    implementation 'com.jakewharton:butterknife:10.2.3'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     implementation('com.github.hotchemi:permissionsdispatcher:3.3.1') {
         // if you don't use android.app.Fragment you can exclude support for them
         exclude module: "support-v13"

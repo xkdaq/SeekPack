@@ -4,14 +4,15 @@
 
     <item
         android:id="@+id/apk"
-        android:title="apk"
         android:icon="@drawable/ic_import"
-        app:showAsAction="always"/>
+        android:title="apk"
+        android:visible="false"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/sort"
-        android:title="@string/sort"
         android:icon="@drawable/ic_timer_white_24dp"
+        android:title="@string/sort"
         app:showAsAction="always" />
 
 </menu>
