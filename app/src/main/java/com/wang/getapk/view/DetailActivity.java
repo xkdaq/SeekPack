@@ -19,6 +19,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wang.getapk.R;
+import com.wang.getapk.databinding.ActivityDetailBinding;
 import com.wang.getapk.model.App;
 import com.wang.getapk.model.Sign;
 import com.wang.getapk.presenter.DetailActivityPresenter;
@@ -41,9 +42,6 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.palette.graphics.Palette;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import io.reactivex.disposables.Disposable;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
@@ -58,37 +56,23 @@ import permissions.dispatcher.RuntimePermissions;
 @RuntimePermissions
 public class DetailActivity extends AppCompatActivity implements DetailActivityPresenter.IView {
 
-    @BindView(R.id.logo_img)
     AppCompatImageView mLogoImg;
-    @BindView(R.id.toolbar)
     Toolbar mToolbar;
-    @BindView(R.id.toolbar_layout)
     CollapsingToolbarLayout mToolbarLayout;
-    @BindView(R.id.app_bar)
     AppBarLayout mAppBar;
-    @BindView(R.id.package_tv)
     AppCompatTextView mPackageTV;
-    @BindView(R.id.launch_tv)
     AppCompatTextView mLaunchTV;
-    @BindView(R.id.version_tv)
     AppCompatTextView mVersionTV;
-    @BindView(R.id.version_name_tv)
     AppCompatTextView mVersionNameTV;
-    @BindView(R.id.time_tv)
     AppCompatTextView mTimeTV;
-    @BindView(R.id.release_tv)
     AppCompatTextView mReleaseTV;
-    @BindView(R.id.system_tv)
     AppCompatTextView mSystemTV;
-    @BindView(R.id.path_tv)
     AppCompatTextView mPathTV;
-    @BindView(R.id.size_tv)
     AppCompatTextView mSizeTV;
-    @BindView(R.id.info_parent)
     LinearLayout mInfoParent;
-    @BindView(R.id.fab)
     FloatingActionButton mFab;
 
+    private ActivityDetailBinding mBinding;
     private App mApp;
     private DetailActivityPresenter mPresenter;
     private Disposable mDisposable;
@@ -99,8 +83,23 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-        ButterKnife.bind(this);
+        mBinding = ActivityDetailBinding.inflate(getLayoutInflater());
+        setContentView(mBinding.getRoot());
+        mLogoImg = mBinding.logoImg;
+        mToolbar = mBinding.toolbar;
+        mToolbarLayout = mBinding.toolbarLayout;
+        mAppBar = mBinding.appBar;
+        mPackageTV = mBinding.packageTv;
+        mLaunchTV = mBinding.launchTv;
+        mVersionTV = mBinding.versionTv;
+        mVersionNameTV = mBinding.versionNameTv;
+        mTimeTV = mBinding.timeTv;
+        mReleaseTV = mBinding.releaseTv;
+        mSystemTV = mBinding.systemTv;
+        mPathTV = mBinding.pathTv;
+        mSizeTV = mBinding.sizeTv;
+        mInfoParent = mBinding.infoParent;
+        mFab = mBinding.fab;
 
         mApp = getIntent().getParcelableExtra("app");
 
@@ -143,6 +142,8 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
 
         });
         mToolbar.setNavigationOnClickListener(v -> onBackPressed());
+        mFab.setOnClickListener(v -> onFab());
+        mLogoImg.setOnClickListener(v -> onLogo());
         mPackageTV.setText(String.format("Package Name: %s", mApp.packageName));
         ComponentName name = null;
         if (mApp.launch != null) {
@@ -194,12 +195,10 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
         DetailActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
-    @OnClick(R.id.fab)
     public void onFab() {
         DetailActivityPermissionsDispatcher.showFileExplorerWithPermissionCheck(this, mApp);
     }
 
-    @OnClick(R.id.logo_img)
     public void onLogo() {
         if (mApp.launch != null) {
             startActivity(mApp.launch);
@@ -366,6 +365,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
             mSaveDisposable.dispose();
         }
         dismissDialog();
+        mBinding = null;
         super.onDestroy();
     }
 }

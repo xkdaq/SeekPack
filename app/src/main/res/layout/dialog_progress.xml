@@ -6,7 +6,7 @@
     android:background="@color/white"
     android:orientation="vertical">
 
-    <include layout="@layout/layout_dialog_title" />
+    <include android:id="@+id/title" layout="@layout/layout_dialog_title" />
 
     <View
         android:layout_width="match_parent"

@@ -14,11 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialog;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatTextView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Optional;
-import butterknife.Unbinder;
+import androidx.viewbinding.ViewBinding;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
@@ -27,7 +23,7 @@ import io.reactivex.disposables.Disposable;
  * Date: 2017/12/28
  */
 
-public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatDialog {
+public abstract class BaseDialog<Builder extends BaseBuilder, B extends ViewBinding> extends AppCompatDialog {
 
     public static final int POSITIVE = 1;
     public static final int NEUTRAL = 2;
@@ -37,21 +33,8 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
     public @interface DialogAction {
     }
 
-    @Nullable
-    @BindView(R.id.title_tv)
-    AppCompatTextView mTitleTV;
-    @Nullable
-    @BindView(R.id.neutral_btn)
-    AppCompatButton mNeutralBtn;
-    @Nullable
-    @BindView(R.id.negative_btn)
-    AppCompatButton mNegativeBtn;
-    @Nullable
-    @BindView(R.id.positive_btn)
-    AppCompatButton mPositiveBtn;
+    protected B binding;
 
-
-    private Unbinder mUnbinder;
     private CompositeDisposable mCompositeDisposable;
     Builder mBuilder;
 
@@ -72,28 +55,42 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(getLayoutId());
+        binding = getViewBinding();
+        setContentView(binding.getRoot());
     }
 
     @Override
     public void show() {
         super.show();
-        mUnbinder = ButterKnife.bind(this);
         initCommonView();
         initViewListener();
         afterView(mBuilder.context, mBuilder);
     }
 
     private void initCommonView() {
-        if (mTitleTV != null) {
+        AppCompatTextView titleTV = getTitleView();
+        if (titleTV != null) {
             if (mBuilder.titleColorSet) {
-                mTitleTV.setTextColor(mBuilder.titleColor);
+                titleTV.setTextColor(mBuilder.titleColor);
             }
-            mTitleTV.setText(mBuilder.title);
+            titleTV.setText(mBuilder.title);
         }
-        setButton(mPositiveBtn, mBuilder.positive);
-        setButton(mNegativeBtn, mBuilder.negative);
-        setButton(mNeutralBtn, mBuilder.neutral);
+        setButton(getPositiveButton(), mBuilder.positive);
+        setButton(getNegativeButton(), mBuilder.negative);
+        setButton(getNeutralButton(), mBuilder.neutral);
+
+        AppCompatButton neutral = getNeutralButton();
+        if (neutral != null) {
+            neutral.setOnClickListener(v -> onNeutral());
+        }
+        AppCompatButton negative = getNegativeButton();
+        if (negative != null) {
+            negative.setOnClickListener(v -> onNegative());
+        }
+        AppCompatButton positive = getPositiveButton();
+        if (positive != null) {
+            positive.setOnClickListener(v -> onPositive());
+        }
     }
 
     private void setButton(Button button, CharSequence name) {
@@ -107,7 +104,19 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
         }
     }
 
-    protected abstract int getLayoutId();
+    protected abstract B getViewBinding();
+
+    @Nullable
+    protected abstract AppCompatTextView getTitleView();
+
+    @Nullable
+    protected abstract AppCompatButton getNeutralButton();
+
+    @Nullable
+    protected abstract AppCompatButton getNegativeButton();
+
+    @Nullable
+    protected abstract AppCompatButton getPositiveButton();
 
     protected void initViewListener() {
 
@@ -115,8 +124,6 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
 
     protected abstract void afterView(Context context, Builder builder);
 
-    @Optional
-    @OnClick(R.id.neutral_btn)
     public void onNeutral() {
         if (mBuilder.autoDismiss) {
             dismiss();
@@ -126,8 +133,6 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
         }
     }
 
-    @Optional
-    @OnClick(R.id.negative_btn)
     public void onNegative() {
         if (mBuilder.autoDismiss) {
             dismiss();
@@ -137,8 +142,6 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
         }
     }
 
-    @Optional
-    @OnClick(R.id.positive_btn)
     public void onPositive() {
         if (mBuilder.autoDismiss) {
             dismiss();
@@ -151,8 +154,6 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
     public Builder getBuilder() {
         return mBuilder;
     }
-
-
 
     /**
      * 插入到观察者集合
@@ -196,7 +197,6 @@ public abstract class BaseDialog<Builder extends BaseBuilder> extends AppCompatD
             mCompositeDisposable.clear();
             mCompositeDisposable = null;
         }
-        mUnbinder.unbind();
     }
 
     public interface OnButtonClickListener {

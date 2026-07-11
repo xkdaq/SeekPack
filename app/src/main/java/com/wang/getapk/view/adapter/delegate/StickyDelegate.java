@@ -10,10 +10,9 @@ import com.wang.getapk.R;
 import com.wang.getapk.model.App;
 import com.wang.getapk.model.StickyTime;
 
-import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import com.wang.getapk.databinding.ItemStickyBinding;
 
 /**
  * Author: wangxiaojie6
@@ -32,20 +31,19 @@ public class StickyDelegate extends AdapterDelegate<StickyDelegate.StickyViewHol
     public void onBindViewHolder(ItemArray itemArray, StickyViewHolder vh, int position) {
         App sticky = itemArray.get(position).getData();
         if (sticky instanceof StickyTime) {
-            vh.mNameTV.setText(sticky.time);
+            vh.binding.nameTv.setText(sticky.time);
         }else {
-            vh.mNameTV.setText(sticky.namePinyin);
+            vh.binding.nameTv.setText(sticky.namePinyin);
         }
     }
 
     static class StickyViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.name_tv)
-        AppCompatTextView mNameTV;
+        final ItemStickyBinding binding;
 
         public StickyViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            binding = ItemStickyBinding.bind(itemView);
         }
     }
 }

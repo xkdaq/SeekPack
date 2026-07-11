@@ -2,6 +2,7 @@ package com.wang.getapk.view.dialog;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -25,30 +26,25 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDialog;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
+
+import com.wang.getapk.databinding.DialogFileExplorerBinding;
 
 /**
  * Author: wangxiaojie6
  * Date: 2018/1/11
  */
 
-public class FileExplorerDialog extends BaseDialog<FileExplorerDialog.Builder>
+public class FileExplorerDialog extends BaseDialog<FileExplorerDialog.Builder, DialogFileExplorerBinding>
         implements FileExplorerDialogPresenter.IView,
         OnRecyclerClickListener,
         Toolbar.OnMenuItemClickListener {
-
-    @BindView(R.id.toolbar)
-    Toolbar mToolbar;
-    @BindView(R.id.path_tv)
-    AppCompatTextView mPathTV;
-    @BindView(R.id.recycler_view)
-    RecyclerView mRecyclerView;
 
     private FileExplorerDialogPresenter mPresenter;
     private Disposable mDisposable;
@@ -59,20 +55,44 @@ public class FileExplorerDialog extends BaseDialog<FileExplorerDialog.Builder>
     }
 
     @Override
-    protected int getLayoutId() {
-        return R.layout.dialog_file_explorer;
+    protected DialogFileExplorerBinding getViewBinding() {
+        return DialogFileExplorerBinding.inflate(getLayoutInflater());
+    }
+
+    @Nullable
+    @Override
+    protected AppCompatTextView getTitleView() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    protected AppCompatButton getNeutralButton() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    protected AppCompatButton getNegativeButton() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    protected AppCompatButton getPositiveButton() {
+        return null;
     }
 
     @Override
     protected void afterView(Context context, Builder builder) {
         if (!builder.isSelectFile) {
-            mToolbar.inflateMenu(R.menu.menu_dialog_file_explorer);
-            mToolbar.setOnMenuItemClickListener(this);
+            binding.toolbar.inflateMenu(R.menu.menu_dialog_file_explorer);
+            binding.toolbar.setOnMenuItemClickListener(this);
         }
-        mToolbar.setTitle(builder.title);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-        mRecyclerView.setAdapter(new FileAdapter(mPresenter.getFileItems(), this));
-        mRecyclerView.setHasFixedSize(true);
+        binding.toolbar.setTitle(builder.title);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        binding.recyclerView.setAdapter(new FileAdapter(mPresenter.getFileItems(), this));
+        binding.recyclerView.setHasFixedSize(true);
         String lastPath;
         if (builder.isSelectFile) {
             lastPath = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -102,40 +122,37 @@ public class FileExplorerDialog extends BaseDialog<FileExplorerDialog.Builder>
     @Override
     public boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.confirm:
-                mBuilder.pathSelectListener.onSelected((String) mPathTV.getText());
-                dismiss();
-                break;
-            case R.id.create:
-                new AlertDialog.Builder(getContext())
-                        .setTitle(R.string.new_create_folder)
-                        .setView(R.layout.item_edit)
-                        .setNegativeButton(R.string.cancel, null)
-                        .setPositiveButton(R.string.new_create, new OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                AppCompatEditText editText = ((AppCompatDialog) dialog).findViewById(R.id.name_et);
-                                String name = editText.getText().toString();
-                                if (TextUtils.isEmpty(name)) {
-                                    name = getContext().getString(R.string.new_create_folder);
-                                }
-                                try {
-                                    String path = mPathTV.getText().toString();
-                                    FileUtil.newCreateFolder(path, name);
-                                    if (mDisposable != null && !mDisposable.isDisposed()) {
-                                        mDisposable.dispose();
-                                    }
-                                    mDisposable = mPresenter.getFiles(path);
-                                    addDisposable(mDisposable);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-
+        if (id == R.id.confirm) {
+            mBuilder.pathSelectListener.onSelected((String) binding.pathTv.getText());
+            dismiss();
+        } else if (id == R.id.create) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle(R.string.new_create_folder)
+                    .setView(R.layout.item_edit)
+                    .setNegativeButton(R.string.cancel, null)
+                    .setPositiveButton(R.string.new_create, new OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            AppCompatEditText editText = ((AppCompatDialog) dialog).findViewById(R.id.name_et);
+                            String name = editText.getText().toString();
+                            if (TextUtils.isEmpty(name)) {
+                                name = getContext().getString(R.string.new_create_folder);
                             }
-                        })
-                        .show().setCanceledOnTouchOutside(false);
-                break;
+                            try {
+                                String path = binding.pathTv.getText().toString();
+                                FileUtil.newCreateFolder(path, name);
+                                if (mDisposable != null && !mDisposable.isDisposed()) {
+                                    mDisposable.dispose();
+                                }
+                                mDisposable = mPresenter.getFiles(path);
+                                addDisposable(mDisposable);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    })
+                    .show().setCanceledOnTouchOutside(false);
         }
 
         return true;
@@ -144,12 +161,12 @@ public class FileExplorerDialog extends BaseDialog<FileExplorerDialog.Builder>
 
     @Override
     public void getFilesSuccess(File parent) {
-        mRecyclerView.getAdapter().notifyDataSetChanged();
+        binding.recyclerView.getAdapter().notifyDataSetChanged();
         String path = parent.getAbsolutePath();
         if (!mBuilder.isSelectFile) {
             CommonPreference.putString(getContext(), Key.KEY_LAST_DIR, path);
         }
-        mPathTV.setText(path);
+        binding.pathTv.setText(path);
     }
 
     @Override

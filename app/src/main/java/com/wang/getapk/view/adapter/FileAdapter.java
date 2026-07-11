@@ -11,10 +11,9 @@ import com.wang.getapk.view.listener.OnRecyclerClickListener;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import com.wang.getapk.databinding.ItemFileBinding;
 
 /**
  * Author: wangxiaojie6
@@ -43,11 +42,11 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     public void onBindViewHolder(FileViewHolder vh, int position) {
         FileItem item = mFileItems.get(position);
         if (item.isDirectory) {
-            vh.mNameTV.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_folder_blue_24dp, 0, 0, 0);
+            vh.binding.nameTv.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_folder_blue_24dp, 0, 0, 0);
         } else {
-            vh.mNameTV.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_android_green_24dp, 0, 0, 0);
+            vh.binding.nameTv.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_android_green_24dp, 0, 0, 0);
         }
-        vh.mNameTV.setText(item.name);
+        vh.binding.nameTv.setText(item.name);
     }
 
     @Override
@@ -57,12 +56,11 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     class FileViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.name_tv)
-        AppCompatTextView mNameTV;
+        final ItemFileBinding binding;
 
         public FileViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            binding = ItemFileBinding.bind(itemView);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -20,6 +20,7 @@ import com.wang.getapk.constant.Key;
 import com.wang.getapk.model.App;
 import com.wang.getapk.presenter.MainActivityPresenter;
 import com.wang.getapk.util.CommonPreference;
+import com.wang.getapk.databinding.ActivityMainBinding;
 import com.wang.getapk.view.adapter.AppAdapter;
 import com.wang.getapk.view.dialog.BaseDialog;
 import com.wang.getapk.view.dialog.FileExplorerDialog;
@@ -36,8 +37,6 @@ import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import permissions.dispatcher.NeedsPermission;
@@ -56,15 +55,12 @@ public class MainActivity extends AppCompatActivity
         OnHeaderClickListener,
         MainActivityPresenter.IView {
 
-    @BindView(R.id.recycler_view)
     RecyclerView mRecyclerView;
-    @BindView(R.id.toolbar)
     Toolbar mToolbar;
-    @BindView(R.id.refresh_view)
     SwipeRefreshLayout mRefreshView;
-    @BindView(R.id.side_bar_view)
     WaveSideBarView mSideBarView;
 
+    private ActivityMainBinding mBinding;
     private MainActivityPresenter mPresenter;
     private CompositeDisposable mDisposables;
     private Disposable mDisposable;
@@ -76,8 +72,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        mBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(mBinding.getRoot());
+        mRecyclerView = mBinding.recyclerView;
+        mToolbar = mBinding.toolbar;
+        mRefreshView = mBinding.refreshView;
+        mSideBarView = mBinding.sideBarView;
         mIsSortByTime = CommonPreference.getBoolean(this, Key.KEY_SORT, mIsSortByTime);
         mPresenter = new MainActivityPresenter(this);
         mDisposables = new CompositeDisposable();
@@ -205,17 +205,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.apk:
-                MainActivityPermissionsDispatcher.showFileExplorerWithPermissionCheck(this, null, true);
-                break;
-            case R.id.sort:
-                mIsSortByTime = !mIsSortByTime;
-                item.setIcon(mIsSortByTime ? R.drawable.ic_a_white_24dp : R.drawable.ic_timer_white_24dp);
-                mRefreshView.setRefreshing(true);
-                mToolbar.getMenu().getItem(1).setEnabled(false);
-                mDisposables.add(mPresenter.getAndSort(this, mIsSortByTime));
-                break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.apk) {
+            MainActivityPermissionsDispatcher.showFileExplorerWithPermissionCheck(this, null, true);
+        } else if (itemId == R.id.sort) {
+            mIsSortByTime = !mIsSortByTime;
+            item.setIcon(mIsSortByTime ? R.drawable.ic_a_white_24dp : R.drawable.ic_timer_white_24dp);
+            mRefreshView.setRefreshing(true);
+            mToolbar.getMenu().getItem(1).setEnabled(false);
+            mDisposables.add(mPresenter.getAndSort(this, mIsSortByTime));
         }
 
         return true;
@@ -339,6 +337,7 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         mDisposables.clear();
         dismissDialog();
+        mBinding = null;
         super.onDestroy();
     }
 
