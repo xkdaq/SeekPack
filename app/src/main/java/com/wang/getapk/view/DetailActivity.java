@@ -1,14 +1,12 @@
 package com.wang.getapk.view;
 
-import android.Manifest;
 import android.content.ComponentName;
-import android.content.DialogInterface;
+import android.net.Uri;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.view.ViewGroup;
@@ -24,18 +22,18 @@ import com.wang.getapk.model.App;
 import com.wang.getapk.model.Sign;
 import com.wang.getapk.presenter.DetailActivityPresenter;
 import com.wang.getapk.util.DrawableHelper;
+import com.wang.getapk.util.FileUtil;
 import com.wang.getapk.util.SizeUtil;
 import com.wang.getapk.view.dialog.BaseDialog;
-import com.wang.getapk.view.dialog.FileExplorerDialog;
 import com.wang.getapk.view.dialog.NumberProgressDialog;
-import com.wang.getapk.view.listener.OnPathSelectListener;
 
 import java.io.File;
 import java.util.Locale;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
@@ -43,17 +41,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.palette.graphics.Palette;
 import io.reactivex.disposables.Disposable;
-import permissions.dispatcher.NeedsPermission;
-import permissions.dispatcher.OnPermissionDenied;
-import permissions.dispatcher.OnShowRationale;
-import permissions.dispatcher.PermissionRequest;
-import permissions.dispatcher.RuntimePermissions;
 
 /**
  * Author: wangxiaojie6
  * Date: 2018/12/29
  */
-@RuntimePermissions
 public class DetailActivity extends AppCompatActivity implements DetailActivityPresenter.IView {
 
     AppCompatImageView mLogoImg;
@@ -79,6 +71,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
     private Disposable mSaveDisposable;
     private NumberProgressDialog mDialog;
     private boolean mCollapsed;
+    private ActivityResultLauncher<String> mCreateDocLauncher;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -102,6 +95,15 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
         mFab = mBinding.fab;
 
         mApp = getIntent().getParcelableExtra("app");
+
+        //导出 apk：由系统文档选择器给出可写入的 uri，绕开分区存储限制，无需任何存储权限
+        mCreateDocLauncher = registerForActivityResult(
+                new ActivityResultContracts.CreateDocument("application/vnd.android.package-archive"),
+                uri -> {
+                    if (uri != null) {
+                        startSave(uri);
+                    }
+                });
 
         mPresenter = new DetailActivityPresenter(this);
         mDisposable = mPresenter.getSignature(this, mApp.isFormFile ? mApp.apkPath : mApp.packageName, mApp.isFormFile);
@@ -189,14 +191,13 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        DetailActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
-    }
-
     public void onFab() {
-        DetailActivityPermissionsDispatcher.showFileExplorerWithPermissionCheck(this, mApp);
+        String fileName = FileUtil.safeFileName(mApp.name + "_" + mApp.versionName) + ".apk";
+        try {
+            mCreateDocLauncher.launch(fileName);
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.save_failed, Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onLogo() {
@@ -205,68 +206,22 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
         }
     }
 
-    @NeedsPermission({
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-    })
-    public void showFileExplorer(final App app) {
-        new FileExplorerDialog.Builder(this)
-                .title(R.string.choose_save_path)
-                .pathSelectListener(new OnPathSelectListener() {
+    private void startSave(Uri uri) {
+        dismissDialog();
+        mDialog = new NumberProgressDialog.Builder(DetailActivity.this)
+                .cancelable(false)
+                .canceledOnTouchOutside(false)
+                .title(R.string.copying)
+                .negative(R.string.cancel)
+                .onNegative(new BaseDialog.OnButtonClickListener() {
                     @Override
-                    public void onSelected(String path) {
-                        if (mDialog != null) {
-                            dismissDialog();
+                    public void onClick(@NonNull BaseDialog dialog, int which) {
+                        if (mSaveDisposable != null && !mSaveDisposable.isDisposed()) {
+                            mSaveDisposable.dispose();
                         }
-                        mDialog = new NumberProgressDialog.Builder(DetailActivity.this)
-                                .cancelable(false)
-                                .canceledOnTouchOutside(false)
-                                .title(R.string.copying)
-                                .negative(R.string.cancel)
-                                .onNegative(new BaseDialog.OnButtonClickListener() {
-                                    @Override
-                                    public void onClick(@NonNull BaseDialog dialog, int which) {
-                                        if (mSaveDisposable != null && !mSaveDisposable.isDisposed()) {
-                                            mSaveDisposable.dispose();
-                                        }
-                                    }
-                                }).show();
-                        mSaveDisposable = mPresenter.saveApk(app, path);
                     }
-                })
-                .show();
-    }
-
-    @OnShowRationale({
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-    })
-    public void showStorageRationale(final PermissionRequest request) {
-        new AlertDialog.Builder(this)
-                .setMessage(R.string.rationale_storage)
-                .setTitle(R.string.warning)
-                .setPositiveButton(R.string.allow, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        request.proceed();
-                    }
-                })
-                .setNegativeButton(R.string.deny, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        request.cancel();
-                    }
-                })
-                .show();
-
-    }
-
-    @OnPermissionDenied({
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-    })
-    public void storageDenied() {
-        Toast.makeText(this, getString(R.string.error_storage), Toast.LENGTH_SHORT).show();
+                }).show();
+        mSaveDisposable = mPresenter.saveApk(this, mApp, uri);
     }
 
     private void addChildView(String str) {
@@ -342,10 +297,6 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
 
     @Override
     public void saveSuccess(String path) {
-        MediaScannerConnection.scanFile(this,
-                new String[]{path},
-                new String[]{"application/vnd.android.package-archive"},
-                null);
         dismissDialog();
         Toast.makeText(this, "success: " + path, Toast.LENGTH_SHORT).show();
     }
@@ -365,6 +316,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityP
             mSaveDisposable.dispose();
         }
         dismissDialog();
+        mPresenter.detach();
         mBinding = null;
         super.onDestroy();
     }

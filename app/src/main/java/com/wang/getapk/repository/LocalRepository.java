@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -23,6 +24,8 @@ import com.wang.getapk.view.listener.OnCopyListener;
 import org.reactivestreams.Publisher;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -82,8 +85,8 @@ public class LocalRepository {
                         for (PackageInfo info : infos) {
                             App app = new App(info, pm);
                             app.isFormFile = false;
-                            Date date = new Date(info.lastUpdateTime);
-                            app.time = dateFormat.format(date);
+                            app.time = dateFormat.format(new Date(info.lastUpdateTime));
+                            app.installTime = dateFormat.format(new Date(info.firstInstallTime));
                             apps.add(app);
                         }
                         setApps(apps);
@@ -92,7 +95,7 @@ public class LocalRepository {
                 });
     }
 
-    public Disposable getAndSort(Context context, final boolean sortByTime, final DateFormat dateFormat, KWSubscriber<ItemArray> subscriber) {
+    public Disposable getAndSort(Context context, final int sortType, final DateFormat dateFormat, KWSubscriber<ItemArray> subscriber) {
         return Flowable.just(new WeakReference<>(context))
                 .flatMap(new Function<WeakReference<Context>, Publisher<List<App>>>() {
                     @Override
@@ -105,7 +108,7 @@ public class LocalRepository {
                         }
                     }
                 })
-                .map(new SortFunction(dateFormat, sortByTime))
+                .map(new SortFunction(dateFormat, sortType))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(subscriber);
@@ -255,13 +258,25 @@ public class LocalRepository {
                 .subscribeWith(subscriber);
     }
 
-    public Disposable saveApk(App app, final String dest, final KWSubscriber<String> subscriber) {
+    /**
+     * 导出 apk 到 SAF 选中的文档。
+     * <p>
+     * Android 10 起分区存储不再允许直接往任意外部路径写 File，所以目标由系统文档选择器给出 Uri，
+     * 这里只负责把包体拷进去并回调进度。
+     *
+     * @param dest 由 {@link androidx.activity.result.contract.ActivityResultContracts.CreateDocument} 返回的文档 uri
+     */
+    public Disposable saveApk(Context context, App app, final Uri dest, final KWSubscriber<String> subscriber) {
+        final Context appContext = context.getApplicationContext();
         return Flowable.just(app)
                 .map(new Function<App, String>() {
                     @Override
                     public String apply(App source) throws Exception {
-                        String fileName = source.name + "_" + source.versionName + ".apk";
-                        return FileUtil.copy(source.apkPath, dest, fileName, new OnCopyListener() {
+                        OutputStream out = appContext.getContentResolver().openOutputStream(dest);
+                        if (out == null) {
+                            throw new IOException("can not open the dest document");
+                        }
+                        FileUtil.copy(source.apkPath, out, new OnCopyListener() {
                             @Override
                             public void inProgress(final float progress) {
                                 mHandler.post(new Runnable() {
@@ -271,7 +286,8 @@ public class LocalRepository {
                                     }
                                 });
                             }
-                        }).getAbsolutePath();
+                        });
+                        return FileUtil.getDisplayName(appContext, dest);
                     }
                 })
                 .subscribeOn(Schedulers.io())

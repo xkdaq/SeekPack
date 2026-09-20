@@ -38,7 +38,17 @@ public class App implements Parcelable {
 
     public long lastUpdateTime;
 
+    /**
+     * 首次安装时间
+     */
+    public long firstInstallTime;
+
     public String time;
+
+    /**
+     * 格式化后的安装日期
+     */
+    public String installTime;
 
     public Intent launch;
 
@@ -50,6 +60,7 @@ public class App implements Parcelable {
         info.applicationInfo.loadIcon(pm);
         applicationInfo = info.applicationInfo;
         lastUpdateTime = info.lastUpdateTime;
+        firstInstallTime = info.firstInstallTime;
         packageName = info.packageName;
         apkPath = applicationInfo.sourceDir;
         versionName = info.versionName;
@@ -75,7 +86,9 @@ public class App implements Parcelable {
         isDebug = in.readByte() != 0;
         isFormFile = in.readByte() != 0;
         lastUpdateTime = in.readLong();
+        firstInstallTime = in.readLong();
         time = in.readString();
+        installTime = in.readString();
         launch = in.readParcelable(Intent.class.getClassLoader());
     }
 
@@ -109,7 +122,9 @@ public class App implements Parcelable {
         dest.writeByte((byte) (isDebug ? 1 : 0));
         dest.writeByte((byte) (isFormFile ? 1 : 0));
         dest.writeLong(lastUpdateTime);
+        dest.writeLong(firstInstallTime);
         dest.writeString(time);
+        dest.writeString(installTime);
         dest.writeParcelable(launch, flags);
     }
 }

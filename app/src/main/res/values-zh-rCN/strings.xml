@@ -23,4 +23,22 @@
     <string name="history_signing">历史签名信息:</string>
     <string name="choose_apk">请选择apk文件</string>
     <string name="parsing">解析中</string>
+    <string name="batch_uninstall">批量卸载</string>
+    <string name="selected_count">已选 %d 项</string>
+    <string name="select_all">全选</string>
+    <string name="deselect_all">取消全选</string>
+    <string name="done">完成</string>
+    <string name="uninstall_count">卸载 (%d)</string>
+    <string name="uninstalling_progress">正在卸载 %1$d/%2$d</string>
+    <string name="system_app_cannot_uninstall">系统应用无法卸载</string>
+    <string name="self_cannot_uninstall">无法在此卸载 SeekPack 自身</string>
+    <string name="confirm_uninstall">确认卸载所选 %d 个应用？</string>
+    <string name="uninstall_result">成功 %1$d 个，未卸载 %2$d 个</string>
+    <string name="no_app_selected">未选择任何应用</string>
+    <string name="uninstall_result_title">卸载结果</string>
+    <string name="save_failed">无法创建文件</string>
+    <string name="sort_title">排序方式</string>
+    <string name="sort_by_update_time">按更新时间（最近更新在前）</string>
+    <string name="sort_by_name">按名称（A-Z）</string>
+    <string name="sort_by_install_time">按安装时间（最新安装在前）</string>
 </resources>

@@ -29,4 +29,11 @@
         <item>Z</item>
         <item>\u0023</item>
     </array>
+
+    <!-- 顺序必须与 com.wang.getapk.constant.SortType 的取值一致 -->
+    <array name="sort_types">
+        <item>@string/sort_by_update_time</item>
+        <item>@string/sort_by_name</item>
+        <item>@string/sort_by_install_time</item>
+    </array>
 </resources>

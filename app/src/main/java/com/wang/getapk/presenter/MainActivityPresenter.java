@@ -1,9 +1,7 @@
 package com.wang.getapk.presenter;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 
 import com.wang.baseadapter.model.ItemArray;
 import com.wang.getapk.model.App;
@@ -36,17 +34,21 @@ public class MainActivityPresenter {
     }
 
 
-    public Disposable getAndSort(Context context, final boolean sortByTime) {
+    public Disposable getAndSort(Context context, final int sortType) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        return mRepository.getAndSort(context.getApplicationContext(), sortByTime, dateFormat, new KWSubscriber<ItemArray>() {
+        return mRepository.getAndSort(context.getApplicationContext(), sortType, dateFormat, new KWSubscriber<ItemArray>() {
             @Override
             public void success(ItemArray apps) {
-                mView.getAppsSuccess(apps, sortByTime);
+                if (mView != null) {
+                    mView.getAppsSuccess(apps, sortType);
+                }
             }
 
             @Override
             public void error(int code, String error) {
-                mView.getAppsError(error);
+                if (mView != null) {
+                    mView.getAppsError(error);
+                }
             }
         });
     }
@@ -55,32 +57,42 @@ public class MainActivityPresenter {
         return mRepository.getApp(context.getApplicationContext(), path, new KWSubscriber<App>() {
             @Override
             public void success(App app) {
-                mView.getAppSuccess(app);
+                if (mView != null) {
+                    mView.getAppSuccess(app);
+                }
             }
 
             @Override
             public void error(int code, String error) {
-                mView.getAppError(error);
+                if (mView != null) {
+                    mView.getAppError(error);
+                }
             }
         });
     }
 
 
-    public Disposable saveApk(App app, final String dest) {
-        return mRepository.saveApk(app, dest, new KWSubscriber<String>() {
+    public Disposable saveApk(Context context, App app, final Uri dest) {
+        return mRepository.saveApk(context, app, dest, new KWSubscriber<String>() {
             @Override
             public void success(String path) {
-                mView.saveSuccess(path);
+                if (mView != null) {
+                    mView.saveSuccess(path);
+                }
             }
 
             @Override
             public void error(int code, String error) {
-                mView.saveError(error);
+                if (mView != null) {
+                    mView.saveError(error);
+                }
             }
 
             @Override
             public void inProgress(float progress) {
-                mView.inProgress(progress);
+                if (mView != null) {
+                    mView.inProgress(progress);
+                }
             }
         });
     }
@@ -89,10 +101,17 @@ public class MainActivityPresenter {
         mRepository.setApps(null);
     }
 
+    /**
+     * Activity 销毁时解绑，避免异步回调回到已销毁的界面
+     */
+    public void detach() {
+        mView = null;
+    }
+
 
     public interface IView {
 
-        void getAppsSuccess(ItemArray apps, boolean sortByTime);
+        void getAppsSuccess(ItemArray apps, int sortType);
 
         void getAppsError(String message);
 

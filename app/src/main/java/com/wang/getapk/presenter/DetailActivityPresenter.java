@@ -2,6 +2,7 @@ package com.wang.getapk.presenter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.net.Uri;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -49,33 +50,50 @@ public class DetailActivityPresenter {
         return mRepository.getSignature(context.getApplicationContext(), packageName, file, new KWSubscriber<Sign>() {
             @Override
             public void success(Sign sign) {
-                mView.getSignatureSuccess(sign);
+                if (mView != null) {
+                    mView.getSignatureSuccess(sign);
+                }
             }
 
             @Override
             public void error(int code, String error) {
-                mView.getSignatureError(error);
+                if (mView != null) {
+                    mView.getSignatureError(error);
+                }
             }
         });
     }
 
-    public Disposable saveApk(App app, final String dest) {
-        return mRepository.saveApk(app, dest, new KWSubscriber<String>() {
+    public Disposable saveApk(Context context, App app, final Uri dest) {
+        return mRepository.saveApk(context, app, dest, new KWSubscriber<String>() {
             @Override
             public void success(String path) {
-                mView.saveSuccess(path);
+                if (mView != null) {
+                    mView.saveSuccess(path);
+                }
             }
 
             @Override
             public void error(int code, String error) {
-                mView.saveError(error);
+                if (mView != null) {
+                    mView.saveError(error);
+                }
             }
 
             @Override
             public void inProgress(float progress) {
-                mView.inProgress(progress);
+                if (mView != null) {
+                    mView.inProgress(progress);
+                }
             }
         });
+    }
+
+    /**
+     * Activity 销毁时解绑，避免异步回调回到已销毁的界面
+     */
+    public void detach() {
+        mView = null;
     }
 
     public interface IView {

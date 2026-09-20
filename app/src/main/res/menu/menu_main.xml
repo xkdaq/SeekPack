@@ -15,4 +15,17 @@
         android:title="@string/sort"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/uninstall"
+        android:icon="@drawable/ic_delete_white_24dp"
+        android:title="@string/batch_uninstall"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/done"
+        android:icon="@drawable/ic_check_white_24dp"
+        android:title="@string/done"
+        android:visible="false"
+        app:showAsAction="always" />
+
 </menu>

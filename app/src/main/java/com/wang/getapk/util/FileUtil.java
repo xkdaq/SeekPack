@@ -1,7 +1,10 @@
 package com.wang.getapk.util;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Environment;
+import android.provider.OpenableColumns;
 import android.os.Handler;
 import android.text.TextUtils;
 
@@ -160,5 +163,65 @@ public class FileUtil {
             in.close();
         }
         return dst;
+    }
+
+    /**
+     * 把 apk 拷贝到任意 {@link OutputStream}（SAF 选中的文档），分块写出并回调进度。
+     * 线程被中断（RxJava dispose）时提前结束。
+     *
+     * @param source   源 apk 路径
+     * @param out      目标输出流，方法结束时关闭
+     * @param listener 进度回调，可为 null
+     */
+    public static void copy(String source, OutputStream out, OnCopyListener listener) throws IOException {
+        File file = new File(source);
+        if (!file.exists()) {
+            throw new IOException("the apk file is no exists");
+        }
+        long total = file.length();
+        long sum = 0;
+        try (InputStream in = new FileInputStream(file); OutputStream dst = out) {
+            byte[] buf = new byte[1024 * 4];
+            int len;
+            Thread thread = Thread.currentThread();
+            while ((len = in.read(buf)) > 0) {
+                if (thread.isInterrupted()) {
+                    break;
+                }
+                sum += len;
+                dst.write(buf, 0, len);
+                if (listener != null) {
+                    listener.inProgress(total <= 0 ? 1F : sum * 1.0f / total);
+                }
+            }
+            dst.flush();
+        }
+    }
+
+    /**
+     * 取 SAF 文档的显示名，取不到时退回 uri 本身，仅用于结果提示
+     */
+    public static String getDisplayName(Context context, Uri uri) {
+        try (Cursor cursor = context.getContentResolver()
+                .query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                String name = cursor.getString(0);
+                if (!TextUtils.isEmpty(name)) {
+                    return name;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return uri.toString();
+    }
+
+    /**
+     * 去掉文件名里的非法字符，避免应用名带 / : * 等导致创建失败
+     */
+    public static String safeFileName(String name) {
+        if (TextUtils.isEmpty(name)) {
+            return "app";
+        }
+        return name.replaceAll("[\\\\/:*?\"<>|\\r\\n]", "_").trim();
     }
 }

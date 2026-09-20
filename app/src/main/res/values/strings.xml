@@ -22,4 +22,22 @@
     <string name="history_signing">Signing History:</string>
     <string name="choose_apk">Select apk file</string>
     <string name="parsing">Parsing</string>
+    <string name="batch_uninstall">Batch uninstall</string>
+    <string name="selected_count">%d selected</string>
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
+    <string name="done">Done</string>
+    <string name="uninstall_count">Uninstall (%d)</string>
+    <string name="uninstalling_progress">Uninstalling %1$d/%2$d</string>
+    <string name="system_app_cannot_uninstall">System apps cannot be uninstalled</string>
+    <string name="self_cannot_uninstall">Cannot uninstall SeekPack itself here</string>
+    <string name="confirm_uninstall">Uninstall the %d selected apps?</string>
+    <string name="uninstall_result">Done: %1$d uninstalled, %2$d kept</string>
+    <string name="no_app_selected">No app selected</string>
+    <string name="uninstall_result_title">Uninstall result</string>
+    <string name="save_failed">Unable to create the file</string>
+    <string name="sort_title">Sort by</string>
+    <string name="sort_by_update_time">Update time (newest first)</string>
+    <string name="sort_by_name">Name (A-Z)</string>
+    <string name="sort_by_install_time">Install time (newest first)</string>
 </resources>

@@ -13,4 +13,9 @@ public class Key {
 
     public final static String KEY_SORT = "key_sort";
 
+    /**
+     * 排序方式，取值见 {@link SortType}
+     */
+    public final static String KEY_SORT_TYPE = "key_sort_type";
+
 }
